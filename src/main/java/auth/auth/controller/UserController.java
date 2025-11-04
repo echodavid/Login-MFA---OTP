@@ -27,9 +27,9 @@ public class UserController {
         if (email == null || password == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Email and password required"));
         }
-        String token = userService.login(email, password);
-        if (token != null) {
-            return ResponseEntity.ok(Map.of("token", token));
+        String message = userService.login(email, password);
+        if (message != null) {
+            return ResponseEntity.ok(Map.of("message", message));
         } else {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid credentials"));
         }

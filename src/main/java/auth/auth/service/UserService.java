@@ -27,6 +27,9 @@ public class UserService implements UserDetailsService {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private OtpService otpService;
+
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
@@ -76,7 +79,8 @@ public class UserService implements UserDetailsService {
     public String login(String email, String password) {
         Optional<User> user = getUserByEmail(email);
         if (user.isPresent() && passwordEncoder.matches(password, user.get().getPassword())) {
-            return jwtUtil.generateToken(email);
+            otpService.generateAndSendOtp(email, null); // machine opcional
+            return "OTP sent to your email";
         }
         return null;
     }
