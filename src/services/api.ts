@@ -6,6 +6,10 @@ import type {
   LoginResponse,
   RegisterRequest,
   ProtectedResponse,
+  OtpRequest,
+  OtpResponse,
+  OtpVerifyRequest,
+  OtpVerifyResponse,
 } from './frontend-dtos';
 
 const API_BASE_URL = 'http://localhost:8080'; // Adjust as needed
@@ -28,6 +32,38 @@ export const api = {
     return response.json();
   },
 
+  // Request/resend OTP
+  requestOtp: async (data: { email: string; machine?: string }): Promise<OtpResponse> => {
+    const response = await fetch(`${API_BASE_URL}/otp/request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      let body = null;
+      try { body = await response.json(); } catch (e) { /* ignore */ }
+      throw new Error(body?.error || `OTP request failed: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  // Verify OTP and receive token
+  verifyOtp: async (data: { email: string; code: string; machine?: string }): Promise<{ token: string }> => {
+    const response = await fetch(`${API_BASE_URL}/otp/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      let body = null;
+      try { body = await response.json(); } catch (e) { /* ignore */ }
+      throw new Error(body?.error || `OTP verify failed: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
   // Login user
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
     const response = await fetch(`${API_BASE_URL}/users/login`, {
@@ -39,11 +75,13 @@ export const api = {
     });
 
     if (!response.ok) {
-      throw new Error(`Login failed: ${response.statusText}`);
+  let body = null;
+  try { body = await response.json(); } catch (e) { /* ignore */ }
+  throw new Error(body?.error || `Login failed: ${response.statusText}`);
     }
 
-    const token = await response.text(); // Backend returns plain string
-    return { token };
+    // Backend returns a message confirming OTP sent
+    return response.json();
   },
 
   // Access protected endpoint
@@ -56,11 +94,12 @@ export const api = {
     });
 
     if (!response.ok) {
-      throw new Error(`Access denied: ${response.statusText}`);
+      let body = null;
+      try { body = await response.json(); } catch (e) { /* ignore */ }
+      throw new Error(body?.error || `Access denied: ${response.statusText}`);
     }
 
-    const message = await response.text(); // Backend returns plain string
-    return { message };
+    return response.json();
   },
 
   // Helper function to store/retrieve token from localStorage

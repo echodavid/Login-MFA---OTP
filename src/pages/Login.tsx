@@ -29,10 +29,11 @@ const Login: React.FC = () => {
           email: values.email,
           password: values.password,
         };
-        const response = await api.login(loginData);
-        login(response.token);
-        toast.success('¡Inicio de sesión exitoso!');
-        navigate('/dashboard');
+  const response = await api.login(loginData);
+  // backend sends OTP to email; save pending email and navigate to verification
+  localStorage.setItem('pendingEmail', values.email);
+  toast.success(response.message || 'OTP enviado al correo');
+  navigate('/verify-otp');
       } catch (error: any) {
         toast.error(error.message || 'Inicio de sesión fallido');
       }

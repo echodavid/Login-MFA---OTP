@@ -16,7 +16,7 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  token: string;
+  message: string;
 }
 
 export interface RegisterRequest {
@@ -28,4 +28,23 @@ export interface RegisterRequest {
 
 export interface ProtectedResponse {
   message: string;
+}
+
+export interface OtpRequest {
+  email: string;
+  machine?: string;
+}
+
+export interface OtpVerifyRequest {
+  email: string;
+  code: string;
+  machine?: string;
+}
+
+export interface OtpResponse {
+  message: string;
+}
+
+export interface OtpVerifyResponse {
+  token: string;
 }

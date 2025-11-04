@@ -4,11 +4,11 @@ import { toast } from 'react-toastify';
 import Layout from '../components/Layout';
 import Button from '../components/Button';
 import api from '../services/api';
+import { useAuth } from '../AuthContext';
 
 const OTPVerification: React.FC = () => {
   const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
-  const [resendLoading, setResendLoading] = useState(false);
   const navigate = useNavigate();
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -39,25 +39,18 @@ const OTPVerification: React.FC = () => {
     }
     setLoading(true);
     try {
-      await api.post('/verify-otp', { otp: otpCode });
-      toast.success('OTP verificado exitosamente.');
-      navigate('/dashboard');
+  const pendingEmail = localStorage.getItem('pendingEmail');
+  if (!pendingEmail) throw new Error('Email pendiente no encontrado.');
+  const resp = await api.verifyOtp({ email: pendingEmail, code: otpCode });
+  // resp contains token
+  api.tokenStorage.set(resp.token);
+  toast.success('OTP verificado exitosamente.');
+  localStorage.removeItem('pendingEmail');
+  navigate('/dashboard');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Error al verificar OTP.');
+  toast.error(error.message || 'Error al verificar OTP.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleResend = async () => {
-    setResendLoading(true);
-    try {
-      await api.post('/resend-otp');
-      toast.success('OTP reenviado.');
-    } catch (error: any) {
-      toast.error('Error al reenviar OTP.');
-    } finally {
-      setResendLoading(false);
     }
   };
 
@@ -85,9 +78,6 @@ const OTPVerification: React.FC = () => {
           {loading ? 'Verificando...' : 'Verificar OTP'}
         </Button>
       </form>
-      <Button onClick={handleResend} disabled={resendLoading} variant="secondary">
-        {resendLoading ? 'Reenviando...' : 'Reenviar OTP'}
-      </Button>
     </Layout>
   );
 };
